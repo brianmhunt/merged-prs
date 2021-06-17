@@ -18,21 +18,16 @@ func parseArgs() (string, string) {
 }
 
 type Flags struct {
-	Path         *string
-	Test         *bool
-	Dev          *bool
-	SlackChannel *string
+	Path *string
+	Dev  *bool
 }
 
 func parseFlags() *Flags {
-
 	flags := &Flags{}
 	wd, _ := os.Getwd()
 
 	flags.Path = flag.String("path", wd, "Path to git repo, defaults to working directory.")
-	flags.Test = flag.Bool("test", false, "Run command in test mode (do not notify Slack)")
 	flags.Dev = flag.Bool("dev", true, "Run merge comparison with strict checking (..) versus (...), necessary for the `dev` branch paradigm")
-	flags.SlackChannel = flag.String("c", "", "Override default Slack channel as defined in config")
 	flag.Parse()
 
 	return flags

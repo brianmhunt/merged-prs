@@ -5,11 +5,10 @@ based upon the GitHub PR as the vehicle for change.
 
 ## Requirements
 
-* Go 1.12 (lower may work)
+* Go 1.16 (lower may work)
 * Dep
 * Git
 * GitHub
-* Slack (optional)
 
 ## Features
 
@@ -18,39 +17,19 @@ based upon the GitHub PR as the vehicle for change.
   retrieved and parsed.
 * List will be output to console containing the PR #, Author, Summary, and a
   link to the PR
-* If Slack credentials are configured, a notification will be sent to the
-  channel of your choosing (from config, or override)
 
 ## Configuration
 
-A `.merged-prs` configuration file must be created in your `$HOME` directory.
-This configuration uses [HashiCorp's HCLSyntax](https://github.com/hashicorp/hcl#syntax).
-Using the example configuration below create a file in `~/.merged-prs`
+Use environment variables `GITHUB_TOKEN` and `GITHUB_OWNER` to respectively specify the
+[Personal access token](https://github.com/settings/tokens) and Github owner.
 
-*Example Config*
-
-```
-// GitHub Personal Access Token && Org/Username required for use.
-GitHub {
-    Token = "foo"
-    Org   = "promiseofcake"
-}
-
-// Optional config for Slack notifications
-Slack {
-    WebhookURL = "https://hooks.slack.com/services/foo/bar/baz"
-    Channel    = "@lucas"
-    Emoji      = ":shipit:"
-}
-
-```
 
 ## Installation
 
 In order to use the `merged-prs` tool one should use `go get`
 
 ```bash
-go get github.com/promiseofcake/merged-prs
+go get github.com/brianmhunt/merged-prs
 ```
 
 ## Usage
@@ -63,8 +42,6 @@ Calling the `merged-prs` tool will act in the current directory's context.
 # Runtime Flags
   -path       <Specify path to repo in order to use outside the context of a repo>
   -dev=false  <Ignore the git-flow dev branch paradigm (loose comparison "...")>
-  -test       <Do not notify Slack, only output to console>
-  -c          <Override default slack notification channel>
 ```
 
 ### Example
@@ -81,3 +58,11 @@ PR   Author    Description              URL
 #55  @lucas    Typo 100 vs 1000         http://github.com/promiseofcake/foo/pull/55
 #54  @lucas    LRU Cache Store Results  http://github.com/promiseofcake/foo/pull/54
 ```
+
+## History
+
+2021-06-17 
+- Forked from [promiseofcake/merged-prs](http://github.com/promiseofcake/merged-prs)
+- Switch to Go Modules
+- Remove Slack integration
+- User `GITHUB_TOKEN` and `GITHUB_OWNER` environment variables for config

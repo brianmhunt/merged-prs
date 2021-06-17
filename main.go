@@ -35,11 +35,6 @@ func main() {
 
 	repopath := *f.Path
 
-	// Override the default slack channel if flag is passed in
-	if *f.SlackChannel != "" {
-		config.Slack.Channel = *f.SlackChannel
-	}
-
 	ref1, ref2 := parseArgs()
 
 	// Derive repo from the path
@@ -123,12 +118,7 @@ func main() {
 	output.WriteString(fmt.Sprintf("%s: Merged GitHub PRs between the following refs: %s %s", strings.ToUpper(repo), ref1, ref2))
 	tbl.Print()
 
-	// Print the merge message to console and notifies slack
-	mergedMessage := output.String()
-	fmt.Println(mergedMessage)
-	if !*f.Test {
-		notifySlack(mergedMessage, config.Slack)
-	}
+	fmt.Println(output.String())
 }
 
 // Function to go to GetHub and process the passed pull requests

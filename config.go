@@ -2,73 +2,35 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"log"
 	"os"
-	"path/filepath"
-
-	"github.com/hashicorp/hcl"
-)
-
-const (
-	configFile = ".merged-prs"
 )
 
 const configUsageText = `
-Configuration file must exist at $HOME/.merged-prs. It is where your GitHub token and Slack settings are stored.
-Example config:
+Use GITHUB_TOKEN and GITHUB_OWNER environment variables e.g.
 
-// ~/.merged-prs
-GitHub {
-	Token = "foo"
-	Org = "vsco"
-}
-
-Slack {
-	WebhookURL = "https://hooks.slack.com/services/foo/bar/baz"
-	Channel  = "#platform"
-	Emoji  = ":shipit:"
-}
-
-Once this is generated the script will work.`
+$ GITHUB_TOKEN="ghb_XYZ" GITHUB_OWNER="brianmhunt" merged-prs
+`
 
 type githubConfig struct {
 	Token string
 	Org   string
 }
 
-type slackConfig struct {
-	WebhookURL string
-	Channel    string
-	Emoji      string
-}
-
 // Config is general configuration used throughout the applicaiton
 type Config struct {
 	Github githubConfig
-	Slack  slackConfig
 }
 
 func initConfig() Config {
-	var configPath = os.Getenv("HOME")
 	var c Config
-	var err error
 
-	config, err := ioutil.ReadFile(filepath.Join(configPath, configFile))
-	if err != nil {
-		log.Printf("Error parsing config: %s", err)
-		configUsage()
-	}
+	c.Github.Org = os.Getenv("GITHUB_OWNER")
+	c.Github.Token = os.Getenv("GITHUB_TOKEN")
 
-	err = hcl.Decode(&c, string(config))
-	if err != nil {
-		log.Fatalf("Configuration decode error: %s", err)
+	if c.Github.Org == "" || c.Github.Token == "" {
+		fmt.Println(configUsageText)
+		os.Exit(1)
 	}
 
 	return c
-}
-
-func configUsage() {
-	fmt.Println(configUsageText)
-	os.Exit(1)
 }
