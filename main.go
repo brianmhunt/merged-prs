@@ -67,12 +67,18 @@ func main() {
 	c := exec.Command(gc, "-C", repopath, "log", "--merges", "--pretty=format:\"%s\"", marg)
 	out, err := c.StdoutPipe()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error piping stdout %s %s: %s", gc, repopath, err)
+	}
+
+	stderr, err := c.StderrPipe()
+	if err != nil {
+		log.Fatalf("Error piping stderr %s %s: %s", gc, repopath, err)
 	}
 
 	err = c.Start()
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("Command failed, stderr: %s", stderr)
+		log.Fatalf("Error starting %s %s: %s", gc, repopath, err)
 	}
 
 	// iterate through matches, and pull out the issues id into a slice
@@ -91,14 +97,15 @@ func main() {
 	}
 	err = c.Wait()
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("Command failed, stderr: %s", stderr)
+		log.Fatalf("Error awaiting %s %s: %s", gc, repopath, err)
 	}
 
 	// if the list is empty, error out
 	if len(ids) == 0 {
 		cmdLog = fmt.Sprintf("No merged PRs / GitHub issues found between: %s %s", ref1, ref2)
 		fmt.Println(cmdLog)
-		os.Exit(2)
+		os.Exit(0)
 	}
 
 	// Get info from GitHub (experiment with concurrency)
@@ -107,7 +114,7 @@ func main() {
 	for _, pull := range pulls {
 		i := fmt.Sprintf("#%d", *pull.Number)
 		u := fmt.Sprintf("@%s", *pull.User.Login)
-		t := fmt.Sprintf("%s", *pull.Title)
+		t := fmt.Sprintf(*pull.Title)
 		l := fmt.Sprintf("%s/%s/%s/pull/%d", gitHubRoot, config.Github.Org, repo, *pull.Number)
 		tbl.AddRow(i, u, t, l)
 	}
