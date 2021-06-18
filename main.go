@@ -79,7 +79,8 @@ func main() {
 	err = c.Start()
 	if err != nil {
 		errout, _ := io.ReadAll(stderr)
-		log.Printf("Command failed, stderr: %s", errout)
+		stdout, _ := io.ReadAll(out)
+		log.Printf("Command failed, stderr: \nstdout: %s\n stderr: %s", stdout, errout)
 		log.Fatalf("Error starting %s %s: %s", gc, repopath, err)
 	}
 
@@ -100,7 +101,8 @@ func main() {
 	err = c.Wait()
 	if err != nil {
 		errout, _ := io.ReadAll(stderr)
-		log.Printf("Command failed, stderr: %s", errout)
+		stdout, _ := io.ReadAll(out)
+		log.Printf("Command failed, stderr: \nstdout: %s\n stderr: %s", stdout, errout)
 		log.Fatalf("Error awaiting %s %s: %s", gc, repopath, err)
 	}
 
