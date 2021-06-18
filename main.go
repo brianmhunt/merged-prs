@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -63,30 +62,30 @@ func main() {
 		comparison = ".."
 	}
 
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
 	// Determine the merged branches between the two hashes
 	marg := fmt.Sprintf("%s%s%s", ref1, comparison, ref2)
 	c := exec.Command(gc, "-C", repopath, "log", "--merges", "--pretty=format:\"%s\"", marg)
-	out, err := c.StdoutPipe()
-	if err != nil {
-		log.Fatalf("Error piping stdout %s %s: %s", gc, repopath, err)
-	}
 
-	stderr, err := c.StderrPipe()
-	if err != nil {
-		log.Fatalf("Error piping stderr %s %s: %s", gc, repopath, err)
-	}
+	c.Stderr = &stderr
+	c.Stdout = &stdout
 
 	err = c.Start()
 	if err != nil {
-		errout, _ := io.ReadAll(stderr)
-		stdout, _ := io.ReadAll(out)
-		log.Printf("Command failed, stderr: \nstdout: %s\n stderr: %s", stdout, errout)
+		log.Printf("Command failed, stderr: \nstdout: %s\nstderr: %s", stdout.String(), stderr.String())
 		log.Fatalf("Error starting %s %s: %s", gc, repopath, err)
 	}
 
 	// iterate through matches, and pull out the issues id into a slice
+	err = c.Wait()
+	if err != nil {
+		log.Printf("Command failed, stderr: \nstdout: %s\nstderr: %s", stdout.String(), stderr.String())
+		log.Fatalf("Error awaiting %s %s: %s", gc, repopath, err)
+	}
+
 	var ids []int
-	s := bufio.NewScanner(out)
+	s := bufio.NewScanner(bytes.NewBuffer(stdout.Bytes()))
 	for s.Scan() {
 		t := s.Text()
 		r, _ := regexp.Compile("#([0-9]+)")
@@ -97,13 +96,6 @@ func main() {
 				ids = append(ids, i)
 			}
 		}
-	}
-	err = c.Wait()
-	if err != nil {
-		errout, _ := io.ReadAll(stderr)
-		stdout, _ := io.ReadAll(out)
-		log.Printf("Command failed, stderr: \nstdout: %s\n stderr: %s", stdout, errout)
-		log.Fatalf("Error awaiting %s %s: %s", gc, repopath, err)
 	}
 
 	// if the list is empty, error out
