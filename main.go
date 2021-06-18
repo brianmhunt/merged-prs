@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -77,7 +78,8 @@ func main() {
 
 	err = c.Start()
 	if err != nil {
-		log.Printf("Command failed, stderr: %s", stderr)
+		errout, _ := io.ReadAll(stderr)
+		log.Printf("Command failed, stderr: %s", errout)
 		log.Fatalf("Error starting %s %s: %s", gc, repopath, err)
 	}
 
@@ -97,7 +99,8 @@ func main() {
 	}
 	err = c.Wait()
 	if err != nil {
-		log.Printf("Command failed, stderr: %s", stderr)
+		errout, _ := io.ReadAll(stderr)
+		log.Printf("Command failed, stderr: %s", errout)
 		log.Fatalf("Error awaiting %s %s: %s", gc, repopath, err)
 	}
 
